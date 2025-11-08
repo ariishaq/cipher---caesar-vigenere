@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caesar + Vigenere Cipher</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; background: linear-gradient(135deg, #4f8bff, #1c2b59); }
+    .container { background: white; padding: 30px; border-radius: 15px; max-width: 750px; margin: 60px auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    h2 { text-align: center; color: #1c2b59; font-size: 26px; margin-bottom: 20px; }
+    label { font-weight: bold; color: #333; }
+    input, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; background: #f9f9f9; transition: 0.3s; font-size: 14px; }
+    input:focus, textarea:focus { border-color: #4f8bff; background: #fff; box-shadow: 0 0 6px rgba(79,139,255,0.4); }
+    button { width: 48%; padding: 12px; font-size: 16px; margin: 10px 1%; cursor: pointer; background: #4f8bff; color: white; border: none; border-radius: 8px; transition: 0.3s; }
+    button:hover { background: #1c2b59; }
+    .btn-group { display: flex; justify-content: space-between; }
+    textarea#output { background: #eef3ff; font-weight: bold; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Enkripsi & Dekripsi (Caesar + Vigenere)</h2>
+
+  <label>Plaintext / Ciphertext:</label>
+  <textarea id="plaintext"></textarea>
+
+  <label>Shift Caesar:</label>
+  <input type="number" id="shift" value="3" />
+
+  <label>Key Vigenere:</label>
+  <input type="text" id="key" placeholder="misal: SECURITY" />
+
+  <div class="btn-group">
+    <button onclick="encrypt()">Enkripsi</button>
+    <button onclick="decrypt()">Dekripsi</button>
+  </div>
+
+  <h3>Hasil:</h3>
+  <textarea id="output" readonly></textarea>
+</div>
+
+<script>
+// ------------------- CAESAR --------------------
+function caesarEncrypt(text, shift) {
+  return text.replace(/[a-z]/gi, c => {
+    const base = c === c.toUpperCase() ? 65 : 97;
+    return String.fromCharCode((c.charCodeAt(0) - base + shift) % 26 + base);
+  });
+}
+function caesarDecrypt(text, shift) { return caesarEncrypt(text, -shift); }
+
+// ------------------- VIGENERE --------------------
+function generateKey(text, key) {
+  key = key.toLowerCase();
+  let out = "";
+  let index = 0;
+  for (let c of text) {
+    if (/[a-z]/i.test(c)) {
+      out += key[index % key.length];
+      index++;
+    } else out += c;
+  }
+  return out;
+}
+
+function vigenereEncrypt(text, key) {
+  let fullKey = generateKey(text, key);
+  let res = "";
+  for (let i = 0; i < text.length; i++) {
+    let t = text[i], k = fullKey[i];
+    if (/[a-z]/i.test(t)) {
+      const base = t === t.toUpperCase() ? 65 : 97;
+      let shift = k.charCodeAt(0) - 97;
+      res += String.fromCharCode((t.charCodeAt(0) - base + shift) % 26 + base);
+    } else res += t;
+  }
+  return res;
+}
+
+function vigenereDecrypt(text, key) {
+  let fullKey = generateKey(text, key);
+  let res = "";
+  for (let i = 0; i < text.length; i++) {
+    let c = text[i], k = fullKey[i];
+    if (/[a-z]/i.test(c)) {
+      const base = c === c.toUpperCase() ? 65 : 97;
+      let shift = k.charCodeAt(0) - 97;
+      res += String.fromCharCode((c.charCodeAt(0) - base - shift + 26) % 26 + base);
+    } else res += c;
+  }
+  return res;
+}
+
+// ----------- ENKRIPSI (CAESAR → VIGENERE) -----------
+function encrypt() {
+  let text = document.getElementById("plaintext").value;
+  let shift = parseInt(document.getElementById("shift").value);
+  let key = document.getElementById("key").value;
+
+  let caesar = caesarEncrypt(text, shift);
+  let vigenere = vigenereEncrypt(caesar, key);
+  document.getElementById("output").value = vigenere;
+}
+
+// ----------- DEKRIPSI (VIGENERE → CAESAR) -----------
+function decrypt() {
+  let text = document.getElementById("plaintext").value;
+  let shift = parseInt(document.getElementById("shift").value);
+  let key = document.getElementById("key").value;
+
+  let vigenere = vigenereDecrypt(text, key);
+  let caesar = caesarDecrypt(vigenere, shift);
+  document.getElementById("output").value = caesar;
+}
+</script>
+</body>
+</html>
